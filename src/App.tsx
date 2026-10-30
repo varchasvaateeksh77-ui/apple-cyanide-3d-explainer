@@ -84,6 +84,7 @@ export default function App() {
   const gsTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const playheadProxyRef = useRef<{ t: number }>({ t: 0 });
   const audioElementsRef = useRef<Record<string, HTMLAudioElement | null>>({});
+  const masterSfxAudioRef = useRef<HTMLAudioElement | null>(null);
   const lastActiveBlockIdRef = useRef<string>('');
 
   // Compute deterministic frame state for current timeline time
@@ -117,14 +118,31 @@ export default function App() {
           blockAudio.play().catch(() => {});
         }
       }
+
+      if (masterSfxAudioRef.current) {
+        if (sfxEnabled) {
+          if (Math.abs(masterSfxAudioRef.current.currentTime - currentTime) > 0.35) {
+            masterSfxAudioRef.current.currentTime = currentTime;
+          }
+          if (masterSfxAudioRef.current.paused) {
+            masterSfxAudioRef.current.play().catch(() => {});
+          }
+        } else if (!masterSfxAudioRef.current.paused) {
+          masterSfxAudioRef.current.pause();
+        }
+      }
     } else {
       Object.values(audioElementsRef.current).forEach((el) => {
         if (el && !el.paused) el.pause();
       });
+      if (masterSfxAudioRef.current && !masterSfxAudioRef.current.paused) {
+        masterSfxAudioRef.current.pause();
+      }
     }
   }, [
     isPlaying,
     currentTime,
+    sfxEnabled,
     uploadedAudioUrls,
     frameState.activeSubtitle?.id,
     frameState.activeSubtitle?.text,
@@ -895,20 +913,27 @@ export default function App() {
                 )}
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span>
-                  {Object.keys(uploadedAudioUrls).length > 0
-                    ? `${Object.keys(uploadedAudioUrls).length} / 5 voiceover blocks linked to timeline`
-                    : 'Ready for voiceover audio files (vo_01_hook.mp3 – vo_05_safe.mp3)'}
+              <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between gap-2 text-xs text-slate-400">
+                <span className="truncate">
+                  5/5 Paced VO Blocks + 10 Real Foley SFX Compiled (`finished output/`)
                 </span>
-                <button
-                  type="button"
-                  onClick={handleRecordWebmClip}
-                  disabled={isRecordingWebm}
-                  className="px-3 py-1.5 font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
-                >
-                  {isRecordingWebm ? 'Recording 5s Clip...' : 'Capture 5s WebM'}
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href="/assets/master/how_apples_kill_humans_final.mp4"
+                    download="how_apples_kill_humans_final.mp4"
+                    className="px-3 py-1.5 font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  >
+                    Download Final 30s MP4
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleRecordWebmClip}
+                    disabled={isRecordingWebm}
+                    className="px-3 py-1.5 font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  >
+                    {isRecordingWebm ? 'Recording...' : 'Capture 5s WebM'}
+                  </button>
+                </div>
               </div>
             </section>
           )}
@@ -1249,6 +1274,12 @@ export default function App() {
           )}
         </div>
       </footer>
+      <audio
+        ref={masterSfxAudioRef}
+        src="/assets/master/sfx_compiled_30s.mp3"
+        className="hidden"
+        loop
+      />
     </div>
   );
 }
