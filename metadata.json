@@ -1,0 +1,6 @@
+{
+  "name": "HyperFrames 3D Explainer — How Apples Can Kill Humans",
+  "description": "Procedural 3D animated short-form explainer video built with Three.js and GSAP, illustrating the biochemistry of apple seeds, amygdalin, and hydrogen cyanide toxicity.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
