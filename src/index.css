@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #090d16;
+    color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* 3D Explainer Title & Subtitle Typography matching Reference Video */
+.explainer-big-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow:
+    0 3px 0 #1e293b,
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 2px rgba(0, 0, 0, 0.9);
+  -webkit-text-stroke: 2px rgba(15, 23, 42, 0.85);
+  paint-order: stroke fill;
+}
+
+.explainer-subtitle-word {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.92),
+    0 4px 10px rgba(0, 0, 0, 0.75);
+  -webkit-text-stroke: 1.25px rgba(0, 0, 0, 0.85);
+  paint-order: stroke fill;
+}
