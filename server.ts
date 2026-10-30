@@ -289,41 +289,78 @@ export async function pushProjectToGithub(repoNameInput?: string): Promise<{
   }
 
   // Note: NEVER commit .env so secrets are never leaked or blocked by GitHub Push Protection
-  const filesToCommit = [
-    '.env.example',
-    '.gitignore',
-    'package.json',
-    'tsconfig.json',
-    'vite.config.ts',
-    'metadata.json',
-    'index.html',
-    'instructions.md',
-    'memory.md',
-    'server.ts',
-    'src/main.tsx',
-    'src/index.css',
-    'src/App.tsx',
-    'src/timeline/explainerData.ts',
-    'src/timeline/explainerData.test.ts',
-    'src/three/proceduralMaterials.ts',
-    'src/three/proceduralModels.ts',
-    'src/three/ExplainerCanvas.tsx',
-    'src/utils/soundEngine.ts',
-    'public/assets/voiceovers/vo_01_hook.mp3',
-    'public/assets/voiceovers/vo_02_seeds.mp3',
-    'public/assets/voiceovers/vo_03_cyanide.mp3',
-    'public/assets/voiceovers/vo_04_150seeds.mp3',
-    'public/assets/voiceovers/vo_05_safe.mp3',
+  const finishedFiles = [
+    'README.md',
+    'how_apples_kill_humans_final.mp4',
+    'master_audio_vo_and_sfx_30s.mp3',
+    'voiceover_compiled_30s.mp3',
+    'sfx_compiled_30s.mp3',
+    'voiceover_blocks/vo_01_hook.mp3',
+    'voiceover_blocks/vo_02_seeds.mp3',
+    'voiceover_blocks/vo_03_cyanide.mp3',
+    'voiceover_blocks/vo_04_150seeds.mp3',
+    'voiceover_blocks/vo_05_safe.mp3',
+    'sfx/sfx_01_whoosh_transition.mp3',
+    'sfx/sfx_02_apple_bite_juicy.mp3',
+    'sfx/sfx_03_seed_crush_crunch.mp3',
+    'sfx/sfx_04_stomach_acid_bubbles.mp3',
+    'sfx/sfx_05_toxicity_counter_geiger.mp3',
+    'sfx/sfx_06_hypoxia_warning_beep.mp3',
+    'sfx/sfx_07_swallow_intact_seed.mp3',
+    'sfx/sfx_08_safe_shell_chime.mp3',
+    'sfx/sfx_09_ui_pop.mp3',
+    'sfx/sfx_10_dark_ambient_drone.mp3',
+  ];
+
+  const filesToCommit: Array<{ localPath: string; remotePath: string }> = [
+    ...[
+      '.env.example',
+      '.gitignore',
+      'package.json',
+      'tsconfig.json',
+      'vite.config.ts',
+      'metadata.json',
+      'index.html',
+      'instructions.md',
+      'memory.md',
+      'server.ts',
+      'src/main.tsx',
+      'src/index.css',
+      'src/App.tsx',
+      'src/timeline/explainerData.ts',
+      'src/timeline/explainerData.test.ts',
+      'src/three/proceduralMaterials.ts',
+      'src/three/proceduralModels.ts',
+      'src/three/ExplainerCanvas.tsx',
+      'src/utils/soundEngine.ts',
+      'public/assets/voiceovers/vo_01_hook.mp3',
+      'public/assets/voiceovers/vo_02_seeds.mp3',
+      'public/assets/voiceovers/vo_03_cyanide.mp3',
+      'public/assets/voiceovers/vo_04_150seeds.mp3',
+      'public/assets/voiceovers/vo_05_safe.mp3',
+    ].map((p) => ({ localPath: p, remotePath: p })),
+    ...finishedFiles.map((f) => ({
+      localPath: `finished_output/${f}`,
+      remotePath: `finished output/${f}`,
+    })),
+    ...finishedFiles.map((f) => ({
+      localPath: `finished_output/${f}`,
+      remotePath: `finished_output/${f}`,
+    })),
   ];
 
   let committedCount = 0;
-  for (const relPath of filesToCommit) {
-    const absPath = path.join(__dirname, relPath);
+  for (const item of filesToCommit) {
+    const absPath = path.join(__dirname, item.localPath);
     if (!fs.existsSync(absPath)) continue;
     const contentBase64 = fs.readFileSync(absPath).toString('base64');
+    const encodedRemote = item.remotePath
+      .split('/')
+      .map((seg) => encodeURIComponent(seg))
+      .join('/');
 
     const existingRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${relPath}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodedRemote}`,
       { headers: ghHeaders }
     );
     let sha: string | undefined;
@@ -333,12 +370,12 @@ export async function pushProjectToGithub(repoNameInput?: string): Promise<{
     }
 
     const putRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${relPath}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodedRemote}`,
       {
         method: 'PUT',
         headers: ghHeaders,
         body: JSON.stringify({
-          message: `Sync ${relPath} from HyperFrames 3D Studio`,
+          message: `Sync ${item.remotePath} from HyperFrames 3D Studio`,
           content: contentBase64,
           ...(sha ? { sha } : {}),
         }),
@@ -346,7 +383,7 @@ export async function pushProjectToGithub(repoNameInput?: string): Promise<{
     );
     if (!putRes.ok) {
       const errBody = await putRes.text();
-      throw new Error(`Failed to commit ${relPath}: ${errBody}`);
+      throw new Error(`Failed to commit ${item.remotePath}: ${errBody}`);
     }
     committedCount++;
   }
